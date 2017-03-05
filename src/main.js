@@ -4,7 +4,7 @@ import path from "path";
 import { parseRequest, httpReasonPhrases, errorCodes } from "./helpers";
 
 fs.chmodSync(path.resolve(`./static/baz.html`), "000");
-console.log("Permissions to ./static/baz.html was set to 000.");
+global.console.log("Permissions to ./static/baz.html was set to 000.");
 
 const server = net.createServer();
 const PORT = process.env.PORT || 3000;
@@ -19,7 +19,7 @@ server.on("connection", socket => {
     if (stringifiedData.includes("\r\n\r\n")) {
       const request = parseRequest(stringifiedData);
 
-      console.log(request);
+      global.console.log(request);
 
       if (request.URL.lastIndexOf("/") < request.URL.lastIndexOf(".")) {
         const fileName = request.URL.slice(
@@ -54,10 +54,10 @@ server.on("connection", socket => {
   });
 
   socket.on("error", err => {
-    console.log(err);
+    global.console.log(err);
   });
 });
 
 server.listen(PORT, () => {
-  console.log(`Server started on port: ${PORT}`);
+  global.console.log(`Server started on port: ${PORT}`);
 });
