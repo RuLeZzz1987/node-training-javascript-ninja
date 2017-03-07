@@ -1,7 +1,7 @@
 import net from "net";
 import fs from "fs";
 import path from "path";
-import handleRequest from "./services/task-0/using-readfile";
+import handleRequest from "./services/task-0/using-streams";
 
 fs.chmodSync(path.resolve(`./static/baz.html`), "000");
 global.console.log("Permissions to ./static/baz.html was set to 000.");
