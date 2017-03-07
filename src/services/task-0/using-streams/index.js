@@ -11,15 +11,15 @@ export default (buffer, socket) => {
 
   const readStream = fs.createReadStream(pathToFile);
 
-  let wasHeadWrote = false;
+  let wasHeadWritten = false;
 
   readStream.on("data", data => {
-    if (!wasHeadWrote) {
+    if (!wasHeadWritten) {
       socket.write(`${request.Protocol} 200 OK\r\n`);
       socket.write(`Date: ${new Date().toUTCString()}\r\n`);
       socket.write("Server: Node Javascript.Ninja\r\n");
       socket.write(`Content-Type: */*\r\n\r\n`);
-      wasHeadWrote = true;
+      wasHeadWritten = true;
     }
     socket.write(data);
   });
