@@ -24,6 +24,10 @@ export default (buffer, socket) => {
     socket.write(data);
   });
 
+  readStream.on("end", () => {
+    socket.end();
+  });
+
   readStream.on("error", e => {
     const errorCode = errorCodes[e.code];
     socket.write(`${request.Protocol} ${errorCode} ${httpReasonPhrases[errorCode]}\r\n`);
