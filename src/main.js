@@ -1,30 +1,15 @@
-import net from "net";
-import fs from "fs";
-import path from "path";
-import handleRequest from "./services/task-0/using-streams";
+const myHttp = require("./task-1/http").default;
+const fs = require("mz/fs");
+const path = require("path");
 
-fs.chmodSync(path.resolve(`./static/baz.html`), "000");
-global.console.log("Permissions to ./static/baz.html was set to 000.");
+const server = myHttp.createServer();
 
-const server = net.createServer();
-const PORT = process.env.PORT || 3000;
+server.on("request", (req, res) => {
+  console.log(req.headers, req.method, req.url);
 
-server.on("connection", socket => {
-  let buffer = Buffer.alloc(0);
-
-  socket.on("data", data => {
-    buffer = Buffer.concat([buffer, data]);
-
-    if (buffer.includes("\r\n\r\n")) {
-      handleRequest(buffer, socket);
-    }
-  });
-
-  socket.on("error", err => {
-    global.console.error(err);
-  });
+  res.setHeader("Content-Type", "application/json");
+  res.writeHead(200); // Вызов writeHead опционален
+  fs.createReadStream(path.resolve(`./static/foo.html`)).pipe(res);
 });
 
-server.listen(PORT, () => {
-  global.console.log(`Server started on port: ${PORT}`);
-});
+server.listen(3000);

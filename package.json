@@ -39,6 +39,7 @@
     "babel-cli": "^6.23.0",
     "babel-core": "^6.23.1",
     "babel-preset-env": "^1.1.11",
+    "mz": "^2.6.0",
     "rimraf": "^2.6.1"
   },
   "babel": {
