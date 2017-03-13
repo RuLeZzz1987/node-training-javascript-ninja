@@ -1,4 +1,4 @@
-const myHttp = require("./task-1/http").default;
+const myHttp = require("./http").default;
 const fs = require("mz/fs");
 const path = require("path");
 
@@ -9,7 +9,7 @@ server.on("request", (req, res) => {
 
   res.setHeader("Content-Type", "application/json");
   res.writeHead(200); // Вызов writeHead опционален
-  fs.createReadStream(path.resolve(`./static/foo.html`)).pipe(res);
+  fs.createReadStream(path.resolve(`./static/index.html`)).pipe(res);
 });
 
 server.listen(3000);
