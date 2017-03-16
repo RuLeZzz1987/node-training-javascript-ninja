@@ -32,6 +32,10 @@
     ],
     "env": {
       "node": true
+    },
+    "rules": {
+      "consistent-return": 0,
+      "import/prefer-default-export": 0
     }
   },
   "pre-commit": "lint-staged",

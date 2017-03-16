@@ -1,62 +1,84 @@
-import ReadableStream from "stream";
-import { CLRF } from '../constants';
+import { Readable } from "stream";
+import { CLRF, AllowedMethods } from "../constants";
 
-class HttpRequest extends ReadableStream {
-
+class HttpRequest extends Readable {
   constructor(socket) {
     super();
 
+    this.client = socket;
     this.socket = socket;
+    this.rawHeaders = [];
+    this.headers = {};
+    this.statusCode = null;
+    this.statusMessage = null;
+    this.readable = true;
 
-    this.unpushedData = [];
-    this.headersBuffer = Buffer.alloc(0);
-    this.areHeadersReceived = false;
-
-    this.socket.on("data", data => {
-      if (this.areHeadersReceived) {
-        this.unpushedData = this.unpushedData.concat(data);
+    let unpushedData = [];
+    let areHeadersReceived = false;
+    let headersBuffer = Buffer.alloc(0);
+    const onData = data => {
+      if (areHeadersReceived) {
+        unpushedData = unpushedData.concat(data);
         this.socket.pause();
-        setTimeout(() => {
-          this.push(Buffer.concat(this.unpushedData));
-          this.unpushedData = [];
-        }, 0)
+        setTimeout(
+          () => {
+            this.push(Buffer.concat(unpushedData));
+            unpushedData = [];
+          },
+          0
+        );
       } else {
-        this.headersBuffer = Buffer.concat([this.headersBuffer, data]);
-        if (this.headersBuffer.includes(`${CLRF}${CLRF}`)) {
-          const headersLastIdx = this.headersBuffer.indexOf(`${CLRF}${CLRF}`) + 4;
-          const headersData = this.headersBuffer.slice(0, headersLastIdx);
+        headersBuffer = Buffer.concat([headersBuffer, data]);
+        if (headersBuffer.includes(`${CLRF}${CLRF}`)) {
+          const headersLastIdx = headersBuffer.indexOf(`${CLRF}${CLRF}`) +
+            4;
+          const headersData = headersBuffer.slice(0, headersLastIdx);
           // eslint-disable-next-line no-underscore-dangle
           this._processHeaders(headersData);
-          this.socket.unshift(this.headersBuffer.slice(headersLastIdx));
+          this.socket.unshift(headersBuffer.slice(headersLastIdx));
           this.socket.pause();
-          this.areHeadersReceived = true;
+          areHeadersReceived = true;
           this.emit("headers");
         }
+      }
+    };
+
+    this.socket.on("readable", () => {
+      const chunk = this.socket.read(7);
+      if (chunk) {
+        const method = chunk.toString("utf8").split(" ", 1)[0];
+        if (!AllowedMethods.includes(method)) {
+          this.socket.end();
+          return;
+        }
+        this.socket.unshift(chunk);
+        this.socket.on("data", onData);
+        this.socket.resume();
       }
     });
   }
 
+
   _processHeaders(buffer) {
     const stringified = buffer.toString("utf-8");
-    const splittedHeaders = stringified.split(CLRF);
-    const requestLine = splittedHeaders.shift().split(" ");
+    const rawHeaders = stringified.split(CLRF);
+    const requestLine = rawHeaders.shift().split(" ");
     this.method = requestLine[0];
     this.url = requestLine[1];
-    this.protocol = requestLine[2];
-    this.headers = splittedHeaders.reduce(
-      (resultRequest, field) => {
-        if (!field) return resultRequest;
-        const headerName = field.split(":", 1)[0];
-        // eslint-disable-next-line no-param-reassign
-        resultRequest[headerName] = field.slice(
-          headerName.length + 2,
-          field.length
-        );
-
-        return resultRequest;
+    this.httpVersion = requestLine[2].split("/")[1];
+    this.rawHeaders = rawHeaders.reduce(
+      (headers, raw) => {
+        const splitted = raw.split(/:(.+)/).filter(el => !!el);
+        headers.push(...splitted);
+        return headers;
       },
-      {}
+      []
     );
+    this.httpVersionMajor = +this.httpVersion.split(".")[0];
+    this.httpVersionMinor = +this.httpVersion.split(".")[1];
+    for (let i = 0; i < this.rawHeaders.length; i += 2) {
+      this.headers[this.rawHeaders[i].toLowerCase()] = this.rawHeaders[i + 1];
+    }
   }
 
   _read() {

@@ -5,7 +5,7 @@ const path = require("path");
 const server = myHttp.createServer();
 
 server.on("request", (req, res) => {
-  console.log(req.headers, req.method, req.url);
+  global.console.log(req.headers, req.method, req.url);
 
   res.setHeader("Content-Type", "application/json");
   res.writeHead(200); // Вызов writeHead опционален

@@ -1,8 +1,8 @@
-import WritableStream from "stream";
+import { Writable } from "stream";
 import { CLRF } from "../constants";
 import stringifyHeaders from "../helpers/stringifyHeaders";
 
-class HttpResponse extends WritableStream {
+class HttpResponse extends Writable {
 
   constructor(socket) {
     super();
@@ -28,23 +28,29 @@ class HttpResponse extends WritableStream {
     const statusLine = `HTTP/1.1 ${statusCode} ${statusMessage}${CLRF}`;
     this.socket.write(statusLine);
 
+    this.socket.write(`Connection: keep-alive${CLRF}Date: ${new Date().toUTCString()}${CLRF}`);
+
     const ownHeaders = stringifyHeaders(this.headers);
     this.socket.write(ownHeaders);
 
     const nextHeaders = stringifyHeaders(headers);
     this.socket.write(nextHeaders);
+    this.socket.write(CLRF);
 
     this.wereHeadersSent = true;
 
   }
 
-  _write(chunk) {
+  _write(...args) {
     if (!this.wereHeadersSent) {
       this.writeHead(200);
       this.wereHeadersSent = true;
     }
+    return this.socket.write(...args);
+  }
 
-    this.socket.write(chunk);
+  end(...args) {
+    this.socket.end(...args);
   }
 }
 
