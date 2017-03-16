@@ -30,8 +30,7 @@ class HttpRequest extends Readable {
       } else {
         headersBuffer = Buffer.concat([headersBuffer, data]);
         if (headersBuffer.includes(`${CLRF}${CLRF}`)) {
-          const headersLastIdx = headersBuffer.indexOf(`${CLRF}${CLRF}`) +
-            4;
+          const headersLastIdx = headersBuffer.indexOf(`${CLRF}${CLRF}`) + 4;
           const headersData = headersBuffer.slice(0, headersLastIdx);
           // eslint-disable-next-line no-underscore-dangle
           this._processHeaders(headersData);
@@ -43,6 +42,7 @@ class HttpRequest extends Readable {
       }
     };
 
+    /** close socket if HTTP method not allowed or invalid */
     this.socket.on("readable", () => {
       const chunk = this.socket.read(7);
       if (chunk) {
@@ -53,11 +53,9 @@ class HttpRequest extends Readable {
         }
         this.socket.unshift(chunk);
         this.socket.on("data", onData);
-        this.socket.resume();
       }
     });
   }
-
 
   _processHeaders(buffer) {
     const stringified = buffer.toString("utf-8");
@@ -77,7 +75,7 @@ class HttpRequest extends Readable {
     this.httpVersionMajor = +this.httpVersion.split(".")[0];
     this.httpVersionMinor = +this.httpVersion.split(".")[1];
     for (let i = 0; i < this.rawHeaders.length; i += 2) {
-      this.headers[this.rawHeaders[i].toLowerCase()] = this.rawHeaders[i + 1];
+      this.headers[this.rawHeaders[i].toLowerCase()] = this.rawHeaders[i + 1].trim();
     }
   }
 

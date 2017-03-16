@@ -3,7 +3,9 @@ import HttpServer from "./http-server";
 class http {
   static createServer(listener) {
     const server = new HttpServer();
-    server.on("request", listener);
+    if (typeof listener === "function") {
+      server.on("request", listener);
+    }
     return server;
   }
 }
