@@ -32,7 +32,6 @@ class HttpRequest extends Readable {
         if (headersBuffer.includes(`${CLRF}${CLRF}`)) {
           const headersLastIdx = headersBuffer.indexOf(`${CLRF}${CLRF}`) + 4;
           const headersData = headersBuffer.slice(0, headersLastIdx);
-          // eslint-disable-next-line no-underscore-dangle
           this._processHeaders(headersData);
           this.socket.unshift(headersBuffer.slice(headersLastIdx));
           this.socket.pause();
@@ -79,6 +78,7 @@ class HttpRequest extends Readable {
     }
   }
 
+  // noinspection JSUnusedGlobalSymbols
   _read() {
     this.socket.resume();
   }
