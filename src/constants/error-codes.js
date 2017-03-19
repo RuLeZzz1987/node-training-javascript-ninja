@@ -1,5 +1,4 @@
-/* eslint-disable import/prefer-default-export */
-export const ErrorCodes = {
+export default {
   ENOENT: 404,
   EACCES: 400
 };

@@ -8,12 +8,15 @@ class HttpResponse extends Writable {
 
     this.socket = socket;
     this.wereHeadersSent = false;
-    this.headers = {};
+    this.headers = {
+      connection: "keep-alive",
+      date: new Date().toUTCString()
+    };
   }
 
   setHeader(headerName, value) {
     if (this.wereHeadersSent) {
-      throw new Error("Can\'t set headers after they are sent.");
+      throw new Error("Can't set headers after they are sent.");
     }
 
     this.headers[headerName.toLowerCase()] = value;
@@ -26,9 +29,6 @@ class HttpResponse extends Writable {
 
     const statusLine = `HTTP/1.1 ${statusCode} ${statusMessage}${CLRF}`;
     this.socket.write(statusLine);
-    this.socket.write(
-      `Connection: keep-alive${CLRF}Date: ${new Date().toUTCString()}${CLRF}`
-    );
 
     this.headers = mergeHeaders(this.headers, headers);
     this.socket.write(stringifyHeaders(this.headers));
@@ -47,9 +47,11 @@ class HttpResponse extends Writable {
   }
 
   end(...args) {
-    return this.headers["content-length"]
-      ? this.socket.write(...args)
-      : this.socket.end(...args);
+    if (this.headers["content-length"]) {
+      return args.length > 0 ? this.socket.write(...args) : true;
+    }
+
+    return this.socket.end(...args);
   }
 }
 

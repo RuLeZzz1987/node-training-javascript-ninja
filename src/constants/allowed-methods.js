@@ -1,4 +1,4 @@
-export const AllowedMethods = [
+export default [
   "OPTIONS",
   "GET",
   "HEAD",

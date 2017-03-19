@@ -51,6 +51,7 @@ class HttpRequest extends Readable {
           return;
         }
         this.socket.unshift(chunk);
+        this.socket.removeListener("readable", ()=>{});
         this.socket.on("data", onData);
       }
     });

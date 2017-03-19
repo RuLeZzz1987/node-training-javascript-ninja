@@ -1,4 +1,4 @@
 export const CLRF = "\r\n";
-export { HttpReasonPhrases } from "./http-reason-phrases";
-export { ErrorCodes } from "./error-codes";
-export { AllowedMethods } from './allowed-methods';
+export { default as HttpReasonPhrases } from "./http-reason-phrases";
+export { default as ErrorCodes } from "./error-codes";
+export { default as AllowedMethods } from './allowed-methods';
